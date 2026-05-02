@@ -24,15 +24,28 @@ public class CookieAuthFilter extends OncePerRequestFilter {
             String path = request.getRequestURI();
             
             if (path.startsWith("/admin") && !path.startsWith("/admin/health")) {
+                String authHeader = request.getHeader("Authorization");
                 boolean isAuthenticated = false;
-                
-                if (request.getCookies() != null) {
+
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    String token = authHeader.substring(7);
+                    if (token != null && !token.isEmpty()) {
+                        isAuthenticated = true;
+                        UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(
+                                "admin", null, Collections.emptyList());
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    }
+                }
+
+                // Also still accept cookie for backward compatibility
+                if (!isAuthenticated && request.getCookies() != null) {
                     for (Cookie cookie : request.getCookies()) {
                         if ("SESSION_TOKEN".equals(cookie.getName()) 
                                 && cookie.getValue() != null 
                                 && !cookie.getValue().isEmpty()) {
                             isAuthenticated = true;
-                            UsernamePasswordAuthenticationToken auth = 
+                            UsernamePasswordAuthenticationToken auth =
                                 new UsernamePasswordAuthenticationToken(
                                     "admin", null, Collections.emptyList());
                             SecurityContextHolder.getContext().setAuthentication(auth);

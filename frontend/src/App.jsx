@@ -23,9 +23,14 @@ function App() {
     if (username && password) {
       try {
         const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-        await axios.post(`${baseURL}/auth/login`, { username, password }, {
-          withCredentials: true // Crucial for receiving the HttpOnly cookie
-        });
+        const response = await axios.post(`${baseURL}/auth/login`, 
+          { username, password }, 
+          { withCredentials: true }
+        );
+        const token = response.data.token;
+        if (token) {
+          sessionStorage.setItem('auth_token', token);
+        }
         setIsAuthenticated(true);
       } catch (err) {
         setError('Invalid credentials');

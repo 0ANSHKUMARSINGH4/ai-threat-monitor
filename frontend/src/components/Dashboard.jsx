@@ -54,6 +54,7 @@ const Dashboard = () => {
         } catch (e) {
             // Ignore errors — log out regardless
         }
+        sessionStorage.removeItem('auth_token');
         window.dispatchEvent(new Event('auth-failed'));
     };
 

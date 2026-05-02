@@ -28,18 +28,11 @@ public class AuthController {
 
             if (adminUsername.equals(username) && adminPassword.equals(password)) {
                 String sessionToken = UUID.randomUUID().toString();
-                
-                ResponseCookie cookie = ResponseCookie.from("SESSION_TOKEN", sessionToken)
-                        .httpOnly(true)
-                        .secure(true)
-                        .path("/")
-                        .maxAge(3600)
-                        .sameSite("None")
-                        .build();
-
                 return ResponseEntity.ok()
-                        .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                        .body(Map.of("message", "Login successful"));
+                    .body(Map.of(
+                        "message", "Login successful",
+                        "token", sessionToken
+                    ));
             }
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -48,9 +41,7 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(500)
                     .body(Map.of(
-                        "error", e.getClass().getName(),
-                        "message", e.getMessage() != null ? e.getMessage() : "null",
-                        "cause", e.getCause() != null ? e.getCause().getMessage() : "null"
+                        "error", e.getMessage() != null ? e.getMessage() : "Internal Server Error"
                     ));
         }
     }
