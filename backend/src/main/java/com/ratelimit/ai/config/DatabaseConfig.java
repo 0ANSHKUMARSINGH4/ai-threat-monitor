@@ -86,15 +86,22 @@ public class DatabaseConfig {
         }
     }
 
-    private void parseDatabaseUrl(String url, HikariConfig config) throws URISyntaxException {
-        // postgres://user:password@host:port/dbname
+    private void parseDatabaseUrl(String url, HikariConfig config) 
+            throws URISyntaxException {
         URI dbUri = new URI(url);
         String username = dbUri.getUserInfo().split(":")[0];
         String password = dbUri.getUserInfo().split(":")[1];
-        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" + dbUri.getPort() + dbUri.getPath() + "?sslmode=require";
+        int port = dbUri.getPort();
+        if (port == -1) {
+            port = 5432; // Default PostgreSQL port
+        }
+        String dbUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" 
+            + port + dbUri.getPath() + "?sslmode=require";
 
         config.setJdbcUrl(dbUrl);
         config.setUsername(username);
         config.setPassword(password);
+        log.info("Parsed JDBC URL: jdbc:postgresql://{}:{}{}", 
+            dbUri.getHost(), port, dbUri.getPath());
     }
 }
