@@ -5,7 +5,7 @@ const api = axios.create({
   withCredentials: true // Extremely important for HttpOnly cookies
 });
 
-// Add a request interceptor to inject the Bearer token
+// Add a request interceptor that injects the Bearer token
 api.interceptors.request.use((config) => {
     const token = sessionStorage.getItem('auth_token');
     if (token) {

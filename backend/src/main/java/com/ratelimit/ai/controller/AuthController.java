@@ -40,9 +40,7 @@ public class AuthController {
                     
         } catch (Exception e) {
             return ResponseEntity.status(500)
-                    .body(Map.of(
-                        "error", e.getMessage() != null ? e.getMessage() : "Internal Server Error"
-                    ));
+                    .body(Map.of("error", e.getMessage()));
         }
     }
     
