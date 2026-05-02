@@ -30,7 +30,7 @@ public class AuthController {
             
             ResponseCookie cookie = ResponseCookie.from("SESSION_TOKEN", sessionToken)
                     .httpOnly(true)
-                    .secure(false) // Set to false for local dev. In production, this should be true.
+                    .secure(true) // Set to false for local dev. In production, this should be true.
                     .path("/")
                     .maxAge(3600) // 1 hour
                     .sameSite("Strict")
@@ -48,7 +48,7 @@ public class AuthController {
     public ResponseEntity<?> logout() {
         ResponseCookie cookie = ResponseCookie.from("SESSION_TOKEN", "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .maxAge(0) 
                 .sameSite("Strict")
