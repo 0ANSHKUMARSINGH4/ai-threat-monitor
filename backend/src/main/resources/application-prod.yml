@@ -5,6 +5,15 @@ spring:
       password: ${ADMIN_PASSWORD:admin123}
   application:
     name: ratelimiter-ai-backend
+  datasource:
+    url: ${DATABASE_URL}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 1
+      idle-timeout: 300000
+      connection-timeout: 30000
+      pool-name: RenderPostgresPool
   jpa:
     hibernate:
       ddl-auto: update
@@ -40,7 +49,3 @@ cors:
 
 server:
   port: ${PORT:8080}
-  error:
-    include-message: always
-    include-exception: true
-    include-stacktrace: always
