@@ -1,0 +1,20 @@
+# Maven Build
+target/
+*.class
+
+# Logs & Temp
+*.log
+*.txt
+.env
+
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+.nb-gradle/
+.settings/
+.project
+.classpath
+.factorypath
+bin/

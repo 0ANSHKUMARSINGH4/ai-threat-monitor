@@ -1,0 +1,60 @@
+services:
+  # Backend Web Service (Java Spring Boot via Docker)
+  - type: web
+    name: ratelimiter-backend
+    runtime: docker
+    dockerContext: backend
+    dockerfilePath: Dockerfile
+    healthCheckPath: /health
+    plan: free
+    region: oregon # Force all services to Oregon to ensure internal networking works
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      # Database Connection (Handled by DatabaseConfig.java)
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ratelimiter-db
+          property: connectionString
+      - key: DB_HOST
+        fromDatabase:
+          name: ratelimiter-db
+          property: host
+      - key: DB_NAME
+        fromDatabase:
+          name: ratelimiter-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: ratelimiter-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: ratelimiter-db
+          property: password
+      # Redis Connection (Internal)
+      - key: REDIS_HOST
+        fromRedis:
+          name: ratelimiter-redis
+          property: host
+      - key: REDIS_PORT
+        fromRedis:
+          name: ratelimiter-redis
+          property: port
+      # Groq AI Key - Force user to set this in the Dashboard for security
+      - key: AI_API_KEY
+        sync: false
+
+databases:
+  - name: ratelimiter-db
+    databaseName: ratelimiter
+    user: admin
+    plan: free
+    region: oregon
+
+# Core Dependency: Managed Redis
+redis:
+  - name: ratelimiter-redis
+    plan: free
+    region: oregon
+    ipAllowList: [] # Only allow internal traffic
