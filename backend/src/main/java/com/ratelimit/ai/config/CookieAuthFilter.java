@@ -17,34 +17,53 @@ import java.util.Collections;
 public class CookieAuthFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, 
+            HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-
-        String path = request.getRequestURI();
-        
-        // Only protect /admin/** routes
-        if (path.startsWith("/admin") && !path.startsWith("/admin/health")) {
-            boolean isAuthenticated = false;
+        try {
+            String path = request.getRequestURI();
             
-            if (request.getCookies() != null) {
-                for (Cookie cookie : request.getCookies()) {
-                    if ("SESSION_TOKEN".equals(cookie.getName()) && cookie.getValue() != null && !cookie.getValue().isEmpty()) {
-                        isAuthenticated = true;
-                        // Set up Spring Security Context for this request
-                        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken("admin", null, Collections.emptyList());
-                        SecurityContextHolder.getContext().setAuthentication(auth);
-                        break;
+            if (path.startsWith("/admin") && !path.startsWith("/admin/health")) {
+                boolean isAuthenticated = false;
+                
+                if (request.getCookies() != null) {
+                    for (Cookie cookie : request.getCookies()) {
+                        if ("SESSION_TOKEN".equals(cookie.getName()) 
+                                && cookie.getValue() != null 
+                                && !cookie.getValue().isEmpty()) {
+                            isAuthenticated = true;
+                            UsernamePasswordAuthenticationToken auth = 
+                                new UsernamePasswordAuthenticationToken(
+                                    "admin", null, Collections.emptyList());
+                            SecurityContextHolder.getContext().setAuthentication(auth);
+                            break;
+                        }
                     }
+                }
+                
+                if (!isAuthenticated) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write(
+                        "{\"error\": \"Unauthorized\"}");
+                    return;
                 }
             }
             
-            if (!isAuthenticated) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("{\"error\": \"Unauthorized - Missing or Invalid HttpOnly Cookie\"}");
-                return;
-            }
+            filterChain.doFilter(request, response);
+            
+        } catch (Exception e) {
+            response.setStatus(500);
+            response.setContentType("application/json");
+            response.getWriter().write(
+                "{\"filterError\":\"" + e.getClass().getName() + 
+                "\",\"message\":\"" + 
+                (e.getMessage() != null ? 
+                    e.getMessage().replace("\"", "'") : "null") + 
+                "\",\"cause\":\"" + 
+                (e.getCause() != null ? 
+                    e.getCause().getClass().getName() : "null") + 
+                "\"}");
         }
-        
-        filterChain.doFilter(request, response);
     }
 }
