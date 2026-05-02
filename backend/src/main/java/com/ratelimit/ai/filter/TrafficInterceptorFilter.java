@@ -36,9 +36,14 @@ public class TrafficInterceptorFilter extends OncePerRequestFilter {
         ContentCachingRequestWrapper cachedReq = new ContentCachingRequestWrapper(request);
         String ip = request.getRemoteAddr();
 
-        if (cachedReq.getRequestURI().startsWith("/admin") || 
-            cachedReq.getRequestURI().startsWith("/health") || 
-            cachedReq.getRequestURI().startsWith("/error")) {
+        String uri = cachedReq.getRequestURI();
+        if (uri != null && (
+            uri.startsWith("/admin") || 
+            uri.startsWith("/health") || 
+            uri.startsWith("/auth") ||
+            uri.startsWith("/error") ||
+            uri.startsWith("/actuator")
+        )) {
             filterChain.doFilter(cachedReq, response);
             return;
         }
