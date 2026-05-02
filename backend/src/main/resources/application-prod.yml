@@ -16,7 +16,7 @@ spring:
       pool-name: RenderPostgresPool
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
