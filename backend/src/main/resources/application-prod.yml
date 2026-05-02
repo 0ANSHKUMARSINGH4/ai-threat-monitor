@@ -46,3 +46,9 @@ logging:
 cors:
   allowed:
     origin: ${CORS_ALLOWED_ORIGIN}
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: always
+    include-exception: true
