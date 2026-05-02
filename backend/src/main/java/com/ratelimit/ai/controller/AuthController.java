@@ -22,26 +22,37 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-        String username = credentials.get("username");
-        String password = credentials.get("password");
+        try {
+            String username = credentials.get("username");
+            String password = credentials.get("password");
 
-        if (adminUsername.equals(username) && adminPassword.equals(password)) {
-            String sessionToken = UUID.randomUUID().toString(); // Basic mock session token for demo
-            
-            ResponseCookie cookie = ResponseCookie.from("SESSION_TOKEN", sessionToken)
-                    .httpOnly(true)
-                    .secure(true) // Set to false for local dev. In production, this should be true.
-                    .path("/")
-                    .maxAge(3600) // 1 hour
-                    .sameSite("Strict")
-                    .build();
+            if (adminUsername.equals(username) && adminPassword.equals(password)) {
+                String sessionToken = UUID.randomUUID().toString();
+                
+                ResponseCookie cookie = ResponseCookie.from("SESSION_TOKEN", sessionToken)
+                        .httpOnly(true)
+                        .secure(true)
+                        .path("/")
+                        .maxAge(3600)
+                        .sameSite("Strict")
+                        .build();
 
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                    .body(Map.of("message", "Login successful"));
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                        .body(Map.of("message", "Login successful"));
+            }
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid credentials"));
+                    
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(Map.of(
+                        "error", e.getClass().getName(),
+                        "message", e.getMessage() != null ? e.getMessage() : "null",
+                        "cause", e.getCause() != null ? e.getCause().getMessage() : "null"
+                    ));
         }
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid credentials"));
     }
     
     @PostMapping("/logout")
