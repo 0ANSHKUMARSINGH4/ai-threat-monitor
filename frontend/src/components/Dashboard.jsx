@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchClients, fetchTrafficStats, resetDemo } from '../services/api';
+import api, { fetchClients, fetchTrafficStats, resetDemo } from '../services/api';
 import ClientTable from './ClientTable';
 import TrafficChart from './TrafficChart';
 import MetricCard from './MetricCard';
@@ -46,6 +46,15 @@ const Dashboard = () => {
         } catch (err) {
             alert('Core reset failed: ' + err.message);
         }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await api.post('/auth/logout');
+        } catch (e) {
+            // Ignore errors — log out regardless
+        }
+        window.dispatchEvent(new Event('auth-failed'));
     };
 
     useEffect(() => {
@@ -109,7 +118,7 @@ const Dashboard = () => {
                         </div>
                     </div>
                     
-                    <button className="flex items-center space-x-3 w-full text-slate-500 hover:text-red-400 px-4 py-3 rounded-xl transition-all duration-300 font-bold text-xs uppercase tracking-widest">
+                    <button onClick={handleLogout} className="flex items-center space-x-3 w-full text-slate-500 hover:text-red-400 px-4 py-3 rounded-xl transition-all duration-300 font-bold text-xs uppercase tracking-widest">
                         <LogOut size={16} />
                         <span>Terminate Session</span>
                     </button>
@@ -146,9 +155,16 @@ const Dashboard = () => {
                 <div className="p-10 space-y-10 max-w-7xl mx-auto">
                     
                     {error && (
-                        <div className="glass-card border-amber-500/20 bg-amber-500/5 text-amber-500 p-4 rounded-2xl flex items-center space-x-3 animate-pulse">
-                            <Terminal size={18} />
-                            <span className="text-xs font-bold tracking-widest uppercase">{error}</span>
+                        <div className="glass-card border-amber-500/20 bg-amber-500/5 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between animate-pulse">
+                            <div className="flex items-center space-x-3 text-amber-500 mb-4 sm:mb-0">
+                                <Terminal size={18} />
+                                <span className="text-xs font-bold tracking-widest uppercase">{error}</span>
+                            </div>
+                            <button 
+                                onClick={loadData}
+                                className="px-3 py-1 text-xs font-black tracking-widest border border-amber-500 text-amber-400 hover:bg-amber-500 hover:text-black transition-colors duration-200 rounded-md uppercase">
+                                RETRY CONNECTION
+                            </button>
                         </div>
                     )}
 

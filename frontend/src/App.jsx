@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import Dashboard from './components/Dashboard'
 import { Lock } from 'lucide-react'
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('adminCredentials'));
+  // We start by assuming they might be authenticated, but if the first API call 
+  // fails with 401, the interceptor will kick them out via the 'auth-failed' event.
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const handleAuthFailed = () => setIsAuthenticated(false);
@@ -13,12 +17,19 @@ function App() {
     return () => window.removeEventListener('auth-failed', handleAuthFailed);
   }, []);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError('');
     if (username && password) {
-      const credentials = btoa(`${username}:${password}`);
-      localStorage.setItem('adminCredentials', credentials);
-      setIsAuthenticated(true);
+      try {
+        const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        await axios.post(`${baseURL}/auth/login`, { username, password }, {
+          withCredentials: true // Crucial for receiving the HttpOnly cookie
+        });
+        setIsAuthenticated(true);
+      } catch (err) {
+        setError('Invalid credentials');
+      }
     }
   };
 
@@ -34,6 +45,8 @@ function App() {
             <p className="text-slate-400 text-sm mt-2 text-center">Enter your credentials to manage the AI Threat Monitor dashboard.</p>
           </div>
           
+          {error && <div className="mb-4 text-red-400 text-sm text-center">{error}</div>}
+
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">Username</label>

@@ -2,23 +2,12 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
-});
-
-// Add a request interceptor
-api.interceptors.request.use((config) => {
-  const credentials = localStorage.getItem('adminCredentials');
-  if (credentials) {
-    config.headers.Authorization = `Basic ${credentials}`;
-  }
-  return config;
-}, (error) => {
-  return Promise.reject(error);
+  withCredentials: true // Extremely important for HttpOnly cookies
 });
 
 // Add a response interceptor to handle 401 Unauthorized
 api.interceptors.response.use((response) => response, (error) => {
   if (error.response && error.response.status === 401) {
-    localStorage.removeItem('adminCredentials');
     window.dispatchEvent(new Event('auth-failed'));
   }
   return Promise.reject(error);
@@ -43,3 +32,14 @@ export const resetDemo = async () => {
   const response = await api.post('/admin/reset');
   return response.data;
 };
+
+export const reclassifyClient = async (ipAddress, label, note = '') => {
+  const response = await api.post('/admin/reclassify', { 
+    ipAddress, 
+    label, 
+    note 
+  });
+  return response.data;
+};
+
+export default api;

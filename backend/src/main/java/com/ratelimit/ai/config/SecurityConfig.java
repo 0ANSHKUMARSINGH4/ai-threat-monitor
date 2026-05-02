@@ -10,33 +10,48 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Value("${cors.allowed.origin:http://localhost:5173}")
+    private String allowedOrigin;
+
+    private final CookieAuthFilter cookieAuthFilter;
+
+    public SecurityConfig(CookieAuthFilter cookieAuthFilter) {
+        this.cookieAuthFilter = cookieAuthFilter;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(cookieAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/health", "/admin/health").permitAll()
+                        .requestMatchers("/health", "/admin/health", "/auth/login", "/auth/logout").permitAll()
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().permitAll()
                 )
-                .httpBasic(Customizer.withDefaults())
                 .build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow dynamic Vercel deployments and local configurations
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        // Exact origin is required when allowCredentials is true
+        configuration.setAllowedOrigins(List.of(allowedOrigin));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

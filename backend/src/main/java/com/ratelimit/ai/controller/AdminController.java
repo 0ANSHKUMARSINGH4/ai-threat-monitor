@@ -121,9 +121,50 @@ public class AdminController {
             );
             aiClassificationRepository.save(override);
             
+            redisTemplate.delete("ai:status:" + ip);
+            redisTemplate.delete("window:" + ip);
+            
             return ResponseEntity.ok("Client Unblocked");
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/reclassify")
+    @Transactional
+    public ResponseEntity<Map<String, String>> reclassifyClient(
+            @RequestBody Map<String, String> request) {
+        
+        String ip = request.get("ipAddress");
+        String correctedLabel = request.get("label"); // "LEGITIMATE" or "ABUSIVE"
+        String adminNote = request.get("note");
+        
+        if (ip == null || correctedLabel == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        // 1. Save labeled training example to DB
+        AiClassification correction = new AiClassification(
+            ip,
+            correctedLabel,
+            1.0,
+            0,
+            "Admin Reclassification: " + (adminNote != null ? adminNote : "No note"),
+            LocalDateTime.now()
+        );
+        aiClassificationRepository.save(correction);
+        
+        // 2. Update client status immediately
+        clientSummaryRepository.findById(ip).ifPresent(summary -> {
+            summary.setStatus(ClientSummary.ClientStatus.valueOf(correctedLabel));
+            clientSummaryRepository.save(summary);
+        });
+        
+        // 3. Clear Redis cache so new label takes effect immediately
+        redisTemplate.delete("ai:status:" + ip);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Reclassification saved. Training example recorded.");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/reset")
