@@ -35,10 +35,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(cookieAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/health", "/admin/health", "/auth/login", "/auth/logout").permitAll()
-                        .requestMatchers("/admin/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .build();

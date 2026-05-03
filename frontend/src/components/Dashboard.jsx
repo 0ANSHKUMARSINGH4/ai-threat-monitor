@@ -48,15 +48,7 @@ const Dashboard = () => {
         }
     };
 
-    const handleLogout = async () => {
-        try {
-            await api.post('/auth/logout');
-        } catch (e) {
-            // Ignore errors — log out regardless
-        }
-        sessionStorage.removeItem('auth_token');
-        window.dispatchEvent(new Event('auth-failed'));
-    };
+
 
     useEffect(() => {
         loadData();
@@ -119,10 +111,7 @@ const Dashboard = () => {
                         </div>
                     </div>
                     
-                    <button onClick={handleLogout} className="flex items-center space-x-3 w-full text-slate-500 hover:text-red-400 px-4 py-3 rounded-xl transition-all duration-300 font-bold text-xs uppercase tracking-widest">
-                        <LogOut size={16} />
-                        <span>Terminate Session</span>
-                    </button>
+
                 </div>
             </aside>
 

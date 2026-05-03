@@ -5,15 +5,6 @@ const api = axios.create({
   withCredentials: true // Extremely important for HttpOnly cookies
 });
 
-// Add a request interceptor that injects the Bearer token
-api.interceptors.request.use((config) => {
-    const token = sessionStorage.getItem('auth_token');
-    if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-});
-
 // Add a response interceptor to handle 401 Unauthorized
 api.interceptors.response.use((response) => response, (error) => {
   if (error.response && error.response.status === 401) {
